@@ -1,34 +1,20 @@
-// Forwards an approved advert to your Make.com or Zapier webhook from the
-// server side — no browser CORS issues, and you get real delivery confirmation.
-
-const ALLOWED = [
-  /^https:\/\/hook\.[a-z0-9-]+\.make\.com\/[A-Za-z0-9]+$/,
-  /^https:\/\/hooks\.zapier\.com\/hooks\/catch\/[\w/-]+$/,
-];
-
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "POST only" });
-  }
-
-  const { webhookUrl, payload } = req.body || {};
-  if (!webhookUrl || !payload) {
-    return res.status(400).json({ error: "Missing webhookUrl or payload" });
-  }
-  if (!ALLOWED.some((re) => re.test(webhookUrl.trim()))) {
-    return res.status(400).json({
-      error: "Webhook must be a Make.com or Zapier webhook URL",
-    });
-  }
-
-  try {
-    const r = await fetch(webhookUrl.trim(), {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    return res.status(200).json({ ok: r.ok, status: r.status });
-  } catch (e) {
-    return res.status(502).json({ error: "Could not reach your webhook" });
+{
+  "name": "morgan-autos-listing-agent",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "lucide-react": "^0.383.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.4.0"
   }
 }

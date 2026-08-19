@@ -1,9 +1,34 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import App from "./App.jsx";
+// Forwards an approved advert to your Make.com or Zapier webhook from the
+// server side — no browser CORS issues, and you get real delivery confirmation.
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+const ALLOWED = [
+  /^https:\/\/hook[a-z0-9.-]*\.make\.com\/[A-Za-z0-9]+\/?$/i,
+  /^https:\/\/hooks\.zapier\.com\/hooks\/catch\/[\w/-]+$/i,
+];
+
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "POST only" });
+  }
+
+  const { webhookUrl, payload } = req.body || {};
+  if (!webhookUrl || !payload) {
+    return res.status(400).json({ error: "Missing webhookUrl or payload" });
+  }
+  if (!ALLOWED.some((re) => re.test(webhookUrl.trim()))) {
+    return res.status(400).json({
+      error: "Webhook must be a Make.com or Zapier webhook URL",
+    });
+  }
+
+  try {
+    const r = await fetch(webhookUrl.trim(), {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return res.status(200).json({ ok: r.ok, status: r.status });
+  } catch (e) {
+    return res.status(502).json({ error: "Could not reach your webhook" });
+  }
+}
